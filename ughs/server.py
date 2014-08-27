@@ -36,7 +36,7 @@ class StorageBackend(object):
     def delete_user(self, userid):
         for group in self.users[userid]['groups']:
             self.groups[group] = [user for user in self.groups[group]
-                                  if user['userid'] != userid]
+                                  if self.users[userid] != userid]
         del self.users[userid]
     
     def store_user(self, user):
@@ -115,12 +115,9 @@ def show_user(userid):
 
 def delete_user(userid):
     if storage.user_exists(userid):
-        try:
             storage.delete_user(userid)
             return Response(status=204)
-        except Exception:
-            return format_error("Unable to delete user '%s'" % userid), 500
-    return format_error("User not found", 404)
+    return format_error("User not found"), 404
 
 
 def add_user(user, userid):
