@@ -64,6 +64,15 @@ class UghsTestCase(unittest.TestCase):
         rv = self.app.post("/groups/admins", data=json.dumps(valid_group))
         assert(rv.status_code == 201)
 
+    def test_005a_get_nonexistent_group(self):
+        rv = self.app.get("/groups/nonexistent")
+        assert(rv.status_code == 404)
+
+    def test_005b_get_group(self):
+        rv = self.app.get("/groups/admins")
+        assert(rv.status_code == 200)
+        assert([] == json.loads(rv.data))
+        
     def test_006_create_group_already_exists(self):
         rv = self.app.post("/groups/admins", data=json.dumps(valid_group))
         assert(rv.status_code == 403)
@@ -80,6 +89,7 @@ class UghsTestCase(unittest.TestCase):
         bad_user['userid'] = 'notjsmith'
         rv = self.app.put("/users/%s" % (valid_user['userid']), json.dumps(bad_user))
         assert(rv.status_code == 400)
+        
     def test_101_delete_user(self):
         rv = self.app.delete("/users/%s" % (valid_user['userid']))
         assert(rv.status_code == 204)
@@ -90,5 +100,6 @@ class UghsTestCase(unittest.TestCase):
         rv = self.app.delete("/users/nonexistent")
         assert(rv.status_code == 404)
 
+    
 if __name__ == "__main__":
     unittest.main()
