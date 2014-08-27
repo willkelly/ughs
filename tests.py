@@ -3,21 +3,92 @@
 import unittest
 import ughs
 import json
+import copy
+
 valid_user = {
     "first_name": "Joe",
     "last_name": "Smith",
     "userid": "jsmith",
     "groups": []}
 
+def new_user(userid, groups=[], first_name="Some", last_name="User"):
+    return dict(userid=userid,
+                groups=groups,
+                first_name=first_name,
+                last_name=last_name)
+ 
+def user_equals(u1, u2):
+    # we're not guaranteed a stable 'groups' order, so == doesn't work
+    safe_keys = ["first_name", "last_name", "userid"]
+    for key in safe_keys:
+        if u1[key] != u2[key]:
+            return False
+    if sorted(u1["groups"]) != sorted(u2["groups"]):
+        return False
+    return True
+    
+valid_group = []
 class UghsTestCase(unittest.TestCase):
     def setUp(self):
         self.app = ughs.app.test_client()
         ughs.app.config['TESTING'] = True
 
-    def test_create_user(self):
-        rv = self.app.post("/users/jsmith", data=json.dumps(valid_user))
+    def test_000_get_nonexistent_user(self):
+        rv = self.app.get("/users/nonexistent")
+        assert(rv.status_code == 404)
+        
+    def test_001_create_user(self):
+        rv = self.app.post("/users/%s" % valid_user['userid'], data=json.dumps(valid_user))
         assert(rv.status_code == 201)
 
-        
+    def test_001a_get_user(self):
+        rv = self.app.get("/users/%s" % valid_user['userid'])
+        assert(rv.status_code == 200)
+        assert(rv.headers["content-type"] == "application/json")
+        assert(user_equals(valid_user, json.loads(rv.data)))
+
+    def test_002_create_user_already_exists(self):
+        rv = self.app.post("/users/%s" % (valid_user['userid']), data=json.dumps(valid_user))
+        assert(rv.status_code == 403)
+
+    def test_003_create_user_userid_doesnt_match(self):
+        rv = self.app.post("/users/not_jsmith", data=json.dumps(valid_user))
+        assert(rv.status_code == 400)
+
+    def test_004_create_user_nonexistent_group(self):
+        valid_user['groups'] = ['admins']
+        rv = self.app.post("/users/jsmith", data=json.dumps(valid_user))
+        assert(rv.status_code == 400)
+
+    def test_005_create_group(self):
+        rv = self.app.post("/groups/admins", data=json.dumps(valid_group))
+        assert(rv.status_code == 201)
+
+    def test_006_create_group_already_exists(self):
+        rv = self.app.post("/groups/admins", data=json.dumps(valid_group))
+        assert(rv.status_code == 403)
+
+    def test_007_update_user(self):
+        rv = self.app.put("/groups/admins", data=json.dumps([valid_user['userid']]))
+        assert(rv.status_code == 204)
+        rv = self.app.get("/users/%s" % valid_user['userid'])
+        user = json.loads(rv.data)
+        assert("admins" in user['groups'])
+
+    def test_008_update_user_userid(self):
+        bad_user = copy.copy(valid_user)
+        bad_user['userid'] = 'notjsmith'
+        rv = self.app.put("/users/%s" % (valid_user['userid']), json.dumps(bad_user))
+        assert(rv.status_code == 400)
+    def test_101_delete_user(self):
+        rv = self.app.delete("/users/%s" % (valid_user['userid']))
+        assert(rv.status_code == 204)
+        rv = self.app.get("/users/%s" % (valid_user['userid']))
+        assert(rv.status_code == 404)
+
+    def test_102_delete_nonexistent_user(self):
+        rv = self.app.delete("/users/nonexistent")
+        assert(rv.status_code == 404)
+
 if __name__ == "__main__":
     unittest.main()
