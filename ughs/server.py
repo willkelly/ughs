@@ -14,7 +14,7 @@ class StorageBackend(object):
     
     def get_users_for_group(self, groupid):
         if self.group_exists(groupid):
-            return [user for user in self.users if groupid in user['groups']]
+            return [user for userid, user in self.users.iteritems() if groupid in user['groups']]
 
     def store_group(self, groupid, users):
         for userid in self.groups.get(groupid, []):
