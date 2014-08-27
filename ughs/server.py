@@ -46,7 +46,7 @@ storage = StorageBackend()
 def user_handler(userid):
     if request.method == "GET":
         # assume json no matter what, because that's how we're rolling.
-        return show_user(request.get_json(force=True), userid)
+        return show_user(userid)
     elif request.method == "POST":
         return add_user(request.get_json(force=True), userid)
     elif request.method == "PUT":
