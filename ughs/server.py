@@ -1,3 +1,4 @@
+
 from flask import Flask, request, Response, g
 import json
 
@@ -113,7 +114,7 @@ def show_user(userid):
 
 
 def delete_user(userid):
-    if storage.user_exists(user_id):
+    if storage.user_exists(userid):
         try:
             storage.delete_user(userid)
             return Response(status=204)
