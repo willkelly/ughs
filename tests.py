@@ -3,7 +3,6 @@
 import unittest
 import ughs
 import json
-import copy
 
 valid_user = {
     "first_name": "Joe",
@@ -92,8 +91,7 @@ class UghsTestCase(unittest.TestCase):
         assert("admins" in user['groups'])
 
     def test_008_update_user_userid(self):
-        bad_user = copy.copy(valid_user)
-        bad_user['userid'] = 'notjsmith'
+        bad_user = new_user("notjsmith")
         rv = self.app.put("/users/%s" % (valid_user['userid']),
                           json.dumps(bad_user))
         assert(rv.status_code == 400)
