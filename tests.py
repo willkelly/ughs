@@ -11,11 +11,13 @@ valid_user = {
     "userid": "jsmith",
     "groups": []}
 
+
 def new_user(userid, groups=[], first_name="Some", last_name="User"):
     return dict(userid=userid,
                 groups=groups,
                 first_name=first_name,
                 last_name=last_name)
+
 
 def user_equals(u1, u2):
     # we're not guaranteed a stable 'groups' order, so == doesn't work
@@ -28,6 +30,8 @@ def user_equals(u1, u2):
     return True
 
 valid_group = []
+
+
 class UghsTestCase(unittest.TestCase):
     def setUp(self):
         self.app = ughs.app.test_client()
@@ -38,7 +42,8 @@ class UghsTestCase(unittest.TestCase):
         assert(rv.status_code == 404)
 
     def test_001_create_user(self):
-        rv = self.app.post("/users/%s" % valid_user['userid'], data=json.dumps(valid_user))
+        rv = self.app.post("/users/%s" % valid_user['userid'],
+                           data=json.dumps(valid_user))
         assert(rv.status_code == 201)
 
     def test_001a_get_user(self):
@@ -48,7 +53,8 @@ class UghsTestCase(unittest.TestCase):
         assert(user_equals(valid_user, json.loads(rv.data)))
 
     def test_002_create_user_already_exists(self):
-        rv = self.app.post("/users/%s" % (valid_user['userid']), data=json.dumps(valid_user))
+        rv = self.app.post("/users/%s" % (valid_user['userid']),
+                           data=json.dumps(valid_user))
         assert(rv.status_code == 403)
 
     def test_003_create_user_userid_doesnt_match(self):
@@ -78,7 +84,8 @@ class UghsTestCase(unittest.TestCase):
         assert(rv.status_code == 403)
 
     def test_007_update_user(self):
-        rv = self.app.put("/groups/admins", data=json.dumps([valid_user['userid']]))
+        rv = self.app.put("/groups/admins",
+                          data=json.dumps([valid_user['userid']]))
         assert(rv.status_code == 204)
         rv = self.app.get("/users/%s" % valid_user['userid'])
         user = json.loads(rv.data)
@@ -87,7 +94,8 @@ class UghsTestCase(unittest.TestCase):
     def test_008_update_user_userid(self):
         bad_user = copy.copy(valid_user)
         bad_user['userid'] = 'notjsmith'
-        rv = self.app.put("/users/%s" % (valid_user['userid']), json.dumps(bad_user))
+        rv = self.app.put("/users/%s" % (valid_user['userid']),
+                          json.dumps(bad_user))
         assert(rv.status_code == 400)
 
     def test_101_delete_user(self):
