@@ -5,10 +5,11 @@ import json
 
 app = Flask("ughs")
 
+
 class StorageBackend(object):
     def __init__(self):
-       self.users = {}
-       self.groups = {}
+        self.users = {}
+        self.groups = {}
 
     def get_user(self, userid):
         return self.users.get(userid, None)
@@ -20,12 +21,12 @@ class StorageBackend(object):
 
     def store_group(self, groupid, users):
         for userid in self.groups.get(groupid, []):
-            if not userid in users:
+            if userid not in users:
                 idx = self.users[userid]['groups'].index(user)
                 if idx != -1:
                     del self.users[userid]['groups'][idx]
         for userid in users:
-            if not groupid in self.users[userid]['groups']:
+            if groupid not in self.users[userid]['groups']:
                 self.users[userid]['groups'].append(groupid)
         self.groups[groupid] = users
 
@@ -87,6 +88,7 @@ def group_handler(groupid):
         return delete_group(groupid)
     return format_error("resource not found"), 404
 
+
 def get_users(groupid):
     users = storage.get_users_for_group(groupid)
     if users is None:
@@ -110,6 +112,7 @@ def modify_group(groupid, users):
                         mimetype='application/json')
     storage.store_group(groupid, users)
     return Response(status=204)
+
 
 def show_user(userid):
     user = storage.get_user(userid)
@@ -219,7 +222,7 @@ def map_all(items, function):
     # which function(item) is not true.  This helps us give better
     # error reporting on user input.
     for item in items:
-        if function(item) == False:
+        if function(item) is False:
             return False, item
     return True, None
 
