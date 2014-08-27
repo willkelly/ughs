@@ -48,7 +48,7 @@ def user_handler(userid):
         # assume json no matter what, because that's how we're rolling.
         return show_user(request.get_json(force=True), userid)
     elif request.method == "POST":
-        return add_user(userid)
+        return add_user(request.get_json(force=True), userid)
     elif request.method == "PUT":
         return modify_user(userid)
     elif request.method == "DELETE":
@@ -106,8 +106,8 @@ def delete_user(userid):
     return format_error("User not found", 404)
 
 
-def add_user(user_str, userid):
-    msg = validate_user(user_str, userid)
+def add_user(user, userid):
+    msg = validate_user(user, userid)
     if msg is not None:
         return format_error("Invalid user: %s" % msg), 400
     if storage.user_exists(userid):
