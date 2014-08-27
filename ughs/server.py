@@ -130,7 +130,7 @@ def format_error(msg):
     return json.dumps({"error": msg})
 
 
-def validate_user(s, userid=None):
+def validate_user(user, userid=None):
     # user should be a json object, parsed into a dictionary
     if not isinstance(user, dict):
         return "User entry is not a json object"
