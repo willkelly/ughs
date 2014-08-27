@@ -119,6 +119,9 @@ class UghsTestCase(unittest.TestCase):
         rv = self.app.delete("/users/nonexistent")
         assert(rv.status_code == 404)
 
+    def test_103_delete_nonexistent_group(self):
+        rv = self.app.delete("/groups/nonexistent")
+        assert(rv.status_code == 404)
 
 if __name__ == "__main__":
     unittest.main()
