@@ -1,3 +1,4 @@
+#!/usr/bin/python
 
 from flask import Flask, request, Response, g
 import json
@@ -8,13 +9,14 @@ class StorageBackend(object):
     def __init__(self):
        self.users = {}
        self.groups = {}
-        
+
     def get_user(self, userid):
         return self.users.get(userid, None)
-    
+
     def get_users_for_group(self, groupid):
         if self.group_exists(groupid):
-            return [user for userid, user in self.users.iteritems() if groupid in user['groups']]
+            return [user for userid, user in self.users.iteritems()
+                    if groupid in user['groups']]
 
     def store_group(self, groupid, users):
         for userid in self.groups.get(groupid, []):
@@ -38,7 +40,7 @@ class StorageBackend(object):
             self.groups[group] = [user for user in self.groups[group]
                                   if self.users[userid] != userid]
         del self.users[userid]
-    
+
     def store_user(self, user):
         for groupid, group in self.groups.iteritems():
             if groupid in user['groups']:
@@ -52,7 +54,7 @@ class StorageBackend(object):
 
     def user_exists(self, userid):
         return userid in self.users
-    
+
     def group_exists(self, groupid):
         return groupid in self.groups
 
@@ -94,7 +96,8 @@ def get_users(groupid):
 
 def add_group(groupid):
     if storage.group_exists(groupid):
-        return Response(format_error("Group '%s' already exists" % groupid), status=403)
+        return Response(format_error("Group '%s' already exists" % groupid),
+                        status=403)
     storage.store_group(groupid, [])
     return Response(status=201)
 
@@ -102,7 +105,9 @@ def add_group(groupid):
 def modify_group(groupid, users):
     users, msg = validate_group(users)
     if users is None:
-        return Response(format_error(msg), status=400, mimetype='application/json')
+        return Response(format_error(msg),
+                        status=400,
+                        mimetype='application/json')
     storage.store_group(groupid, users)
     return Response(status=204)
 
@@ -160,7 +165,7 @@ def validate_user(user, userid=None):
     valid, value = has_expected_keys(required_fields, user)
     if not valid:
         return "Unexpected field: '%s'." % value
-    
+
     # groups should be a json array, parsed into a list.
     if not isinstance(user["groups"], list):
         return 'user["groups"] should be a json array'
@@ -169,7 +174,7 @@ def validate_user(user, userid=None):
     valid, value = map_all(user["groups"], is_string)
     if not valid:
         return "Group name '%s' is not a string." % (value)
-    
+
     # all groups assigned to the user must already exist.
     valid, value = map_all(user["groups"], storage.group_exists)
     if not valid:
