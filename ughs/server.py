@@ -16,6 +16,14 @@ class StorageBackend(object):
             return [user for user in self.users if groupid in user['groups']]
 
     def store_group(self, groupid, users):
+        for userid in self.groups.get(groupid, []):
+            if not userid in users:
+                idx = self.users[userid]['groups'].index(user)
+                if idx != -1:
+                    del self.users[userid]['groups'][idx]
+        for userid in users:
+            if not groupid in self.users[userid]['groups']:
+                self.users[userid]['groups'].append(groupid)
         self.groups[groupid] = users
 
     def delete_group(self):
@@ -31,6 +39,14 @@ class StorageBackend(object):
         del self.users[userid]
     
     def store_user(self, user):
+        for groupid, group in self.groups.iteritems():
+            if groupid in user['groups']:
+                if not user['userid'] in group:
+                    group.append(user['userid'])
+            else:
+                idx = group.index(user['userid'])
+                if idx != -1:
+                    del group[idx]
         self.users[user['userid']] = user
 
     def user_exists(self, userid):
@@ -50,7 +66,7 @@ def user_handler(userid):
     elif request.method == "POST":
         return add_user(request.get_json(force=True), userid)
     elif request.method == "PUT":
-        return modify_user(userid)
+        return modify_user(request.get_json(force=True), userid)
     elif request.method == "DELETE":
         return delete_user(userid)
     return format_error("resource not found"), 404
@@ -116,8 +132,8 @@ def add_user(user, userid):
     return Response(status=201)
 
 
-def modify_user(user_str, userid):
-    msg = validate_user(userid)
+def modify_user(user, userid):
+    msg = validate_user(user, userid)
     if msg is not None:
         return format_error("Invalid user: %s" % msg), 403
     if not storage.user_exists(userid):
@@ -133,6 +149,7 @@ def format_error(msg):
 def validate_user(user, userid=None):
     # user should be a json object, parsed into a dictionary
     if not isinstance(user, dict):
+        print user, type(user)
         return "User entry is not a json object"
 
     # the user should include all of the keys we expect in a user
