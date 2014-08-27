@@ -31,7 +31,7 @@ class StorageBackend(object):
         del self.users[userid]
     
     def store_user(self, user):
-        self.users[user[userid]] = user
+        self.users[user['userid']] = user
 
     def user_exists(self, userid):
         return userid in self.users
