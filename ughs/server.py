@@ -30,8 +30,8 @@ class StorageBackend(object):
                 self.users[userid]['groups'].append(groupid)
         self.groups[groupid] = users
 
-    def delete_group(self):
-        for user in self.users:
+    def delete_group(self, groupid):
+        for userid, user in self.users.iteritems():
             user['groups'] = [group for group in user['groups']
                               if group != groupid]
         del self.groups[groupid]
@@ -112,6 +112,13 @@ def modify_group(groupid, users):
                         mimetype='application/json')
     storage.store_group(groupid, users)
     return Response(status=204)
+
+
+def delete_group(groupid):
+    if storage.group_exists(groupid):
+        storage.delete_group(groupid)
+        return Response(status=204)
+    return format_error("Group not found"), 404
 
 
 def show_user(userid):

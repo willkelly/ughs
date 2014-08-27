@@ -82,7 +82,7 @@ class UghsTestCase(unittest.TestCase):
         rv = self.app.post("/groups/admins", data=json.dumps(valid_group))
         assert(rv.status_code == 403)
 
-    def test_007_update_user(self):
+    def test_007_update_group(self):
         rv = self.app.put("/groups/admins",
                           data=json.dumps([valid_user['userid']]))
         assert(rv.status_code == 204)
@@ -95,6 +95,19 @@ class UghsTestCase(unittest.TestCase):
         rv = self.app.put("/users/%s" % (valid_user['userid']),
                           json.dumps(bad_user))
         assert(rv.status_code == 400)
+        rv = self.app.get("/users/%s" % valid_user['userid'])
+        user = json.loads(rv.data)
+        assert(user_equals(user, valid_user))
+
+    def test_099_delete_group(self):
+        rv = self.app.get("/users/%s" % valid_user['userid'])
+        user = json.loads(rv.data)
+        assert("admins" in user["groups"])
+        rv = self.app.delete("/groups/admins")
+        assert(rv.status_code == 204)
+        rv = self.app.get("/users/%s" % (valid_user['userid']))
+        user = json.loads(rv.data)
+        assert("admins" not in user["groups"])
 
     def test_101_delete_user(self):
         rv = self.app.delete("/users/%s" % (valid_user['userid']))
