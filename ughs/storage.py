@@ -40,9 +40,11 @@ class InMemoryStorageBackend(BaseStorageBackend):
     def store_group(self, groupid, users):
         for userid in self.groups.get(groupid, []):
             if userid not in users:
-                idx = self.users[userid]['groups'].index(user)
-                if idx != -1:
+                try:
+                    idx = self.users[userid]['groups'].index(user)
                     del self.users[userid]['groups'][idx]
+                except ValueError:
+                    pass
         for userid in users:
             if groupid not in self.users[userid]['groups']:
                 self.users[userid]['groups'].append(groupid)
@@ -66,9 +68,11 @@ class InMemoryStorageBackend(BaseStorageBackend):
                 if not user['userid'] in group:
                     group.append(user['userid'])
             else:
-                idx = group.index(user['userid'])
-                if idx != -1:
+                try:
+                    idx = group.index(user['userid'])
                     del group[idx]
+                except ValueError:
+                    pass
         self.users[user['userid']] = user
 
     def user_exists(self, userid):
