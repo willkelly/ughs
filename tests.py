@@ -55,33 +55,38 @@ class UghsTestCase(unittest.TestCase):
         rv = self.app.post("/users/%s" % (valid_user['userid']),
                            data=json.dumps(valid_user))
         assert(rv.status_code == 403)
+        assert(rv.headers["content-type"] == "application/json")
 
     def test_003_create_user_userid_doesnt_match(self):
         rv = self.app.post("/users/not_jsmith", data=json.dumps(valid_user))
         assert(rv.status_code == 400)
+        assert(rv.headers["content-type"] == "application/json")
 
     def test_004_create_user_nonexistent_group(self):
         valid_user['groups'] = ['admins']
         rv = self.app.post("/users/jsmith", data=json.dumps(valid_user))
         assert(rv.status_code == 400)
+        assert(rv.headers["content-type"] == "application/json")
 
     def test_005_create_group(self):
         rv = self.app.post("/groups/admins", data=json.dumps(valid_group))
         assert(rv.status_code == 201)
+        rv = self.app.get("/groups/admins")
 
     def test_005a_get_nonexistent_group(self):
         rv = self.app.get("/groups/nonexistent")
         assert(rv.status_code == 404)
-
-    def test_005b_get_group(self):
-        rv = self.app.get("/groups/admins")
-        assert(rv.status_code == 200)
         assert(rv.headers["content-type"] == "application/json")
-        assert([] == json.loads(rv.data))
+
+    def test_005b_get_empty_group(self):
+        rv = self.app.get("/groups/admins")
+        assert(rv.status_code == 404)
+        assert(rv.headers["content-type"] == "application/json")
 
     def test_006_create_group_already_exists(self):
         rv = self.app.post("/groups/admins", data=json.dumps(valid_group))
         assert(rv.status_code == 403)
+        assert(rv.headers["content-type"] == "application/json")
 
     def test_007_update_group(self):
         rv = self.app.put("/groups/admins",
@@ -91,14 +96,16 @@ class UghsTestCase(unittest.TestCase):
         user = json.loads(rv.data)
         assert("admins" in user['groups'])
         rv = self.app.get("/groups/admins")
+        assert(rv.status_code == 200)
         users = json.loads(rv.data)
         assert(valid_user['userid'] in users)
 
     def test_008_update_user_userid(self):
         bad_user = new_user("notjsmith")
         rv = self.app.put("/users/%s" % (valid_user['userid']),
-                          json.dumps(bad_user))
+                          data=json.dumps(bad_user))
         assert(rv.status_code == 400)
+        assert(rv.headers["content-type"] == "application/json")
         rv = self.app.get("/users/%s" % valid_user['userid'])
         user = json.loads(rv.data)
         assert(user_equals(user, valid_user))
@@ -114,20 +121,24 @@ class UghsTestCase(unittest.TestCase):
         assert("admins" not in user["groups"])
         rv = self.app.get("/groups/admins")
         assert(rv.status_code == 404)
+        assert(rv.headers["content-type"] == "application/json")
 
     def test_101_delete_user(self):
         rv = self.app.delete("/users/%s" % (valid_user['userid']))
         assert(rv.status_code == 204)
         rv = self.app.get("/users/%s" % (valid_user['userid']))
         assert(rv.status_code == 404)
+        assert(rv.headers["content-type"] == "application/json")
 
     def test_102_delete_nonexistent_user(self):
         rv = self.app.delete("/users/nonexistent")
         assert(rv.status_code == 404)
+        assert(rv.headers["content-type"] == "application/json")
 
     def test_103_delete_nonexistent_group(self):
         rv = self.app.delete("/groups/nonexistent")
         assert(rv.status_code == 404)
+        assert(rv.headers["content-type"] == "application/json")
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from flask import Flask, request, Response, g
-from ughs.storage import StorageBackend
+from storage import StorageBackend
 import json
 
 app = Flask("ughs")
@@ -39,6 +39,8 @@ def get_users(groupid):
     users = storage.get_users_for_group(groupid)
     if users is None:
         return format_error("Group '%s' does not exist." % groupid, 404)
+    if len(users) == 0:
+        return format_error("Group '%s' is empty." % groupid, 404)
     return Response(json.dumps(users), status=200, mimetype='application/json')
 
 
@@ -180,5 +182,4 @@ def map_all(items, function):
 
 
 if __name__ == "__main__":
-    app.debug = True
-    app.run(host='0.0.0.0')
+    app.run()
