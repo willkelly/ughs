@@ -1,64 +1,10 @@
 #!/usr/bin/python
 
 from flask import Flask, request, Response, g
+from ughs.storage import StorageBackend
 import json
 
 app = Flask("ughs")
-
-
-class StorageBackend(object):
-    def __init__(self):
-        self.users = {}
-        self.groups = {}
-
-    def get_user(self, userid):
-        return self.users.get(userid, None)
-
-    def get_users_for_group(self, groupid):
-        if self.group_exists(groupid):
-            return [user for userid, user in self.users.iteritems()
-                    if groupid in user['groups']]
-
-    def store_group(self, groupid, users):
-        for userid in self.groups.get(groupid, []):
-            if userid not in users:
-                idx = self.users[userid]['groups'].index(user)
-                if idx != -1:
-                    del self.users[userid]['groups'][idx]
-        for userid in users:
-            if groupid not in self.users[userid]['groups']:
-                self.users[userid]['groups'].append(groupid)
-        self.groups[groupid] = users
-
-    def delete_group(self, groupid):
-        for userid, user in self.users.iteritems():
-            user['groups'] = [group for group in user['groups']
-                              if group != groupid]
-        del self.groups[groupid]
-
-    def delete_user(self, userid):
-        for group in self.users[userid]['groups']:
-            self.groups[group] = [user for user in self.groups[group]
-                                  if self.users[userid] != userid]
-        del self.users[userid]
-
-    def store_user(self, user):
-        for groupid, group in self.groups.iteritems():
-            if groupid in user['groups']:
-                if not user['userid'] in group:
-                    group.append(user['userid'])
-            else:
-                idx = group.index(user['userid'])
-                if idx != -1:
-                    del group[idx]
-        self.users[user['userid']] = user
-
-    def user_exists(self, userid):
-        return userid in self.users
-
-    def group_exists(self, groupid):
-        return groupid in self.groups
-
 storage = StorageBackend()
 
 
