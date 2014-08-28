@@ -89,6 +89,9 @@ class UghsTestCase(unittest.TestCase):
         rv = self.app.get("/users/%s" % valid_user['userid'])
         user = json.loads(rv.data)
         assert("admins" in user['groups'])
+        rv = self.app.get("/groups/admins")
+        users = json.loads(rv.data)
+        assert(valid_user['userid'] in users)
 
     def test_008_update_user_userid(self):
         bad_user = new_user("notjsmith")

@@ -34,7 +34,7 @@ class InMemoryStorageBackend(BaseStorageBackend):
 
     def get_users_for_group(self, groupid):
         if self.group_exists(groupid):
-            return [user for userid, user in self.users.iteritems()
+            return [userid for userid, user in self.users.iteritems()
                     if groupid in user['groups']]
 
     def store_group(self, groupid, users):
