@@ -76,6 +76,7 @@ class UghsTestCase(unittest.TestCase):
     def test_005b_get_group(self):
         rv = self.app.get("/groups/admins")
         assert(rv.status_code == 200)
+        assert(rv.headers["content-type"] == "application/json")
         assert([] == json.loads(rv.data))
 
     def test_006_create_group_already_exists(self):
@@ -111,6 +112,8 @@ class UghsTestCase(unittest.TestCase):
         rv = self.app.get("/users/%s" % (valid_user['userid']))
         user = json.loads(rv.data)
         assert("admins" not in user["groups"])
+        rv = self.app.get("/groups/admins")
+        assert(rv.status_code == 404)
 
     def test_101_delete_user(self):
         rv = self.app.delete("/users/%s" % (valid_user['userid']))
