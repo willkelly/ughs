@@ -19,7 +19,7 @@ def user_handler(userid):
         return modify_user(request.get_json(force=True), userid)
     elif request.method == "DELETE":
         return delete_user(userid)
-    return format_error("resource not found"), 404
+    return format_error("resource not found", 404)
 
 
 @app.route('/groups/<groupid>', methods=['GET', 'POST', 'PUT', 'DELETE'])
@@ -32,20 +32,19 @@ def group_handler(groupid):
         return modify_group(groupid, request.get_json(force=True))
     elif request.method == "DELETE":
         return delete_group(groupid)
-    return format_error("resource not found"), 404
+    return format_error("resource not found", 404)
 
 
 def get_users(groupid):
     users = storage.get_users_for_group(groupid)
     if users is None:
-        return format_error("Group '%s' does not exist." % groupid), 404
+        return format_error("Group '%s' does not exist." % groupid, 404)
     return Response(json.dumps(users), status=200, mimetype='application/json')
 
 
 def add_group(groupid):
     if storage.group_exists(groupid):
-        return Response(format_error("Group '%s' already exists" % groupid),
-                        status=403)
+        return format_error("Group '%s' already exists" % groupid, 403)
     storage.store_group(groupid, [])
     return Response(status=201)
 
@@ -53,9 +52,7 @@ def add_group(groupid):
 def modify_group(groupid, users):
     users, msg = validate_group(users)
     if users is None:
-        return Response(format_error(msg),
-                        status=400,
-                        mimetype='application/json')
+        return format_error(msg, 400)
     storage.store_group(groupid, users)
     return Response(status=204)
 
@@ -64,29 +61,29 @@ def delete_group(groupid):
     if storage.group_exists(groupid):
         storage.delete_group(groupid)
         return Response(status=204)
-    return format_error("Group not found"), 404
+    return format_error("Group not found", 404)
 
 
 def show_user(userid):
     user = storage.get_user(userid)
     if user is None:
-        return format_error("User not found"), 404
-    return Response(json.dumps(user), status=200, mimetype='application/json')
+        return format_error("User not found", 404)
+    return Response(json.dumps(user), status=200, mimetype="application/json")
 
 
 def delete_user(userid):
     if storage.user_exists(userid):
             storage.delete_user(userid)
             return Response(status=204)
-    return format_error("User not found"), 404
+    return format_error("User not found", 404)
 
 
 def add_user(user, userid):
     msg = validate_user(user, userid)
     if msg is not None:
-        return format_error("Invalid user: %s" % msg), 400
+        return format_error("Invalid user: %s" % msg, 400)
     if storage.user_exists(userid):
-        return format_error("User '%s' already exists." % userid), 403
+        return format_error("User '%s' already exists." % userid, 403)
     storage.store_user(user)
     return Response(status=201)
 
@@ -94,15 +91,17 @@ def add_user(user, userid):
 def modify_user(user, userid):
     msg = validate_user(user, userid)
     if msg is not None:
-        return format_error("Invalid user: %s" % msg), 403
+        return format_error("Invalid user: %s" % msg, 400)
     if not storage.user_exists(userid):
-        return format_error("User '%s' not found" % userid), 404
+        return format_error("User '%s' not found" % userid, 404)
     storage.store_user(user)
     return Response(status=204)
 
 
-def format_error(msg):
-    return json.dumps({"error": msg})
+def format_error(msg, status):
+    return Response(json.dumps({"error": msg}),
+                    status=status,
+                    mimetype="application/json")
 
 
 def validate_user(user, userid=None):
