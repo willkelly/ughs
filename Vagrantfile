@@ -6,8 +6,7 @@ VAGRANTFILE_API_VERSION = "2"
 $script = <<SCRIPT
 touch /tmp/iran
 apt-get install -y python python-setuptools git
-git clone https://github.com/willkelly/ughs.git
-cd ughs/
+cd /vagrant
 python setup.py install
 python ughs/server.py
 SCRIPT
